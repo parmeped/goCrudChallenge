@@ -39,21 +39,15 @@ Address (Should have state or city. [this is an assumption])
 - Unit tests  
 - Docker
 
-
-# Contact info 
-
-Name
-Company -- another table with company data. 
-ProfileImage -- same talbe
-Email -- same talbe
-BirthDate -- same talbe
-PhoneNumber (Work, Personal) (could therefore have more than 1, ability to add multiple ones) -- have to be on different tables, attached via contact ID
-Address (Should have state or city. [this is an assumption]) -- Table with States, Table with City
-
 # DB
-- Contacts (contactID, name, companyID, profileImage, email, birthDate)
-- Companies (companyID, companyName, street (with number), stateID, cityID)
+- Contacts (contactID, name, companyID, profileImage, email, birthDate, addressID)
+- Companies (companyID, companyName, addressID)
 - Phones (phoneID, contactID, phone, typeID)
+- States (stateID, name)
+- Cities (cityID, stateID, name)
+- Address (addressID, street, number, stateId, cityId)
+- PhoneTypes (typeID, name)
 
 
 
+TODO: review all annotations, add descriptions to funcs and structs
