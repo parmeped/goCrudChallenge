@@ -1,18 +1,18 @@
 package contact
 
+import (
+	"github.com/goCrudChallenge/pkg/utl/model"
+	"github.com/labstack/echo"
+)
+
 //TODO: Inteface proper implementation
 
 //"github.com/ribice/gorsk/pkg/utl/query"
 
-// // Create creates a new user account
-// func (u *User) Create(c echo.Context, req gorsk.User) (*gorsk.User, error) {
-// 	// if err := u.rbac.AccountCreate(c, req.RoleID, req.CompanyID, req.LocationID); err != nil {
-// 	// 	return nil, err
-// 	// }
-// 	// req.Password = u.sec.Hash(req.Password)
-// 	// return u.udb.Create(u.db, req)
-// 	return nil
-// }
+func (co *Contact) Create(c echo.Context, req model.Contact) (*model.Contact, error) {
+	//TODO: vaildations should go here
+	return co.cdb.Create(co.db, req)
+}
 
 // // List returns list of users
 // func (u *User) List(c echo.Context, p *gorsk.Pagination) ([]gorsk.User, error) {

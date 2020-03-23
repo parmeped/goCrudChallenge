@@ -7,9 +7,8 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/go-playground/validator"
+	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/middleware"
-	"github.com/ribice/gorsk/pkg/utl/middleware/secure"
 
 	"github.com/labstack/echo"
 )
@@ -17,8 +16,7 @@ import (
 // New instantates new Echo server
 func New() *echo.Echo {
 	e := echo.New()
-	e.Use(middleware.Logger(), middleware.Recover(),
-		secure.CORS(), secure.Headers())
+	e.Use(middleware.Logger(), middleware.Recover())
 	e.GET("/", healthCheck)
 	e.Validator = &CustomValidator{V: validator.New()}
 	custErr := &customErrHandler{e: e}

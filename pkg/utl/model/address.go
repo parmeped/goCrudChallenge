@@ -2,7 +2,7 @@ package model
 
 import "strconv"
 
-// TODO: add desc
+// TODO: Remove
 type Address struct {
 	Base
 	Active  bool   `json:"active"`

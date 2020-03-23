@@ -1,9 +1,8 @@
 package api
 
 import (
-	"github.com/goCrudChallenge/pkg/utl/zlog"
-	"github.com/gorsk/pkg/api/user"
-
+	cs "github.com/goCrudChallenge/pkg/api/contact"
+	ct "github.com/goCrudChallenge/pkg/api/contact/transport"
 	"github.com/goCrudChallenge/pkg/utl/config"
 	"github.com/goCrudChallenge/pkg/utl/postgres"
 	"github.com/goCrudChallenge/pkg/utl/server"
@@ -13,13 +12,10 @@ import (
 func Start(cfg *config.Configuration) error {
 
 	// Tries to connect to the DB
-	db, err := postgres.New(cfg.DB.PSN, cfg.DB.Timeout, cfg.DB.LogQueries)
+	db, err := postgres.New(cfg.DB.PSN, cfg.DB.Timeout)
 	if err != nil {
 		return err
 	}
-
-	// Initializes Log
-	log := zlog.New()
 
 	// Initializes server
 	e := server.New()
@@ -29,7 +25,7 @@ func Start(cfg *config.Configuration) error {
 	v1 := e.Group("/v1")
 
 	// Initializes contact service
-	ut.NewHTTP(cl.New(user.Initialize(db, rbac, sec), log), v1)
+	ct.NewHTTP(cs.Initialize(db), v1)
 
 	// Starts server
 	server.Start(e, &server.Config{

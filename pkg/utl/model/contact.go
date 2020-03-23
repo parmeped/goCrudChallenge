@@ -11,5 +11,8 @@ type Contact struct {
 	ProfileImage string    `json:"profile_image"` // TODO: this should be a BLOB, or something similar. See how to save this data.
 	Email        string    `json:"email"`
 	BirthDate    time.Time `json:"birth_date"`
-	Address      Address   `json:"address_id"`
+	StreetName   string    `json:"street_name"`
+	StreetNumber int       `json:"street_number"`
+	CityID       int       `json:"city_id"`
+	StateID      int       `json:"state_id"`
 }

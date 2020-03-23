@@ -2,7 +2,11 @@ package pgsql
 
 import (
 	"net/http"
+	"strings"
 
+	"github.com/go-pg/pg"
+	"github.com/go-pg/pg/orm"
+	"github.com/goCrudChallenge/pkg/utl/model"
 	"github.com/labstack/echo"
 )
 
@@ -20,21 +24,21 @@ var (
 	ErrAlreadyExists = echo.NewHTTPError(http.StatusInternalServerError, "Username or email already exists.")
 )
 
-// // Create creates a new user on database
-// func (u *User) Create(db orm.DB, usr gorsk.User) (*gorsk.User, error) {
-// 	var user = new(gorsk.User)
-// 	err := db.Model(user).Where("lower(username) = ? or lower(email) = ? and deleted_at is null",
-// 		strings.ToLower(usr.Username), strings.ToLower(usr.Email)).Select()
-// 	if (err == nil) || (err != nil && err != pg.ErrNoRows) {
-// 		return nil, ErrAlreadyExists
-// 	}
+// Create creates a new user on database
+func (c *Contact) Create(db orm.DB, cont model.Contact) (*model.Contact, error) {
+	var contact = new(model.Contact)
+	err := db.Model(contact).Where("lower(name) = ? or lower(email) = ? and deleted_at is null",
+		strings.ToLower(cont.Name), strings.ToLower(cont.Email)).Select()
+	if (err == nil) || (err != nil && err != pg.ErrNoRows) {
+		return nil, ErrAlreadyExists
+	}
 
-// 	if err := db.Insert(&usr); err != nil {
-// 		return nil, err
-// 	}
+	if err := db.Insert(&cont); err != nil {
+		return nil, err
+	}
 
-// 	return &usr, nil
-// }
+	return &cont, nil
+}
 
 // // View returns single user by ID
 // func (u *User) View(db orm.DB, id int) (*gorsk.User, error) {
