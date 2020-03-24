@@ -83,7 +83,7 @@ type Update struct {
 func (co *Contact) Update(c echo.Context, r *Update) (*res.ContactResponse, error) {
 
 	if err := co.cdb.Update(co.db, &model.Contact{
-		Base:         model.Base{ID: r.ID},
+		Base:         model.Base{ID: r.ID, UpdatedAt: time.Now()},
 		Name:         r.Name,
 		CompanyID:    r.CompanyID,
 		ProfileImage: r.ProfileImage,

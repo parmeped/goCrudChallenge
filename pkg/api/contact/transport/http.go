@@ -60,7 +60,6 @@ func (h *HTTP) create(c echo.Context) error {
 	// TODO: phone missing, remove Active
 	cnt, err := h.svc.Create(c, model.Contact{
 		Name:         r.Name,
-		Active:       true,
 		CompanyID:    r.CompanyID,
 		ProfileImage: r.ProfileImage,
 		Email:        r.Email,
@@ -68,6 +67,7 @@ func (h *HTTP) create(c echo.Context) error {
 		StreetName:   r.StreetName,
 		StreetNumber: r.StreetNumber,
 		CityID:       r.CityID,
+		Phones:       r.Phones,
 	})
 
 	if err != nil {
@@ -121,6 +121,7 @@ func (h *HTTP) view(c echo.Context) error {
 	return c.JSON(http.StatusOK, result)
 }
 
+// TODO: add pagination
 func (h *HTTP) byMail(c echo.Context) error {
 	mail := c.Param("mail")
 

@@ -1,10 +1,13 @@
 package requests
 
+import "github.com/goCrudChallenge/pkg/utl/model"
+
 type CreateReq struct {
-	Name         string `json:"name" validate:"required"`
-	Email        string `json:"email" validate:"required,email"`
-	ProfileImage string `json:"profile_image" validate:"required"`
-	BirthDate    string `json:"birth_date" validate:"required"`
+	Name         string        `json:"name" validate:"required"`
+	Email        string        `json:"email" validate:"required,email"`
+	ProfileImage string        `json:"profile_image" validate:"required"`
+	BirthDate    string        `json:"birth_date" validate:"required"`
+	Phones       []model.Phone `json:"phones,omitempty"`
 
 	CompanyID    int    `json:"company_id" validate:"required"`
 	StreetName   string `json:"street_name" validate:"required"`

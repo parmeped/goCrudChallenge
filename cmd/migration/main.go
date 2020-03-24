@@ -15,8 +15,11 @@ func main() {
 	dbInsert :=
 		`INSERT INTO public.cities VALUES (1, now(), now(), NULL, 'TestCity', 1);
 	INSERT INTO public.states VALUES (1, now(), now(), NULL, 'TestState');
-	INSERT INTO public.companies VALUES (1, now(), now(), NULL, 'TestCompany', true, 'TestStreet', 1000, 1);
-	INSERT INTO public.contacts VALUES (1, now(), now(), NULL, 'TestContact', true, 1, NULL, 'test@email.com', '2020-01-01', 'TestStreet', 1000, 1);`
+	INSERT INTO public.companies VALUES (1, now(), now(), NULL, 'TestCompany', 'TestStreet', 1000, 1);
+	INSERT INTO public.contacts VALUES (1, now(), now(), NULL, 'TestContact', 1, NULL, 'test@email.com', '2020-01-01', 'TestStreet', 1000, 1);
+	INSERT INTO public.phone_types VALUES (1, now(), now(), NULL, 'Work');
+	INSERT INTO public.phone_types VALUES (2, now(), now(), NULL, 'Personal');
+	`
 
 	var psn = `postgres://postgres:mpc3000@localhost:5432/CrudTest?sslmode=disable`
 	queries := strings.Split(dbInsert, ";")
