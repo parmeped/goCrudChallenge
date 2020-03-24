@@ -1,8 +1,8 @@
 package model
 
-// TODO: add desc
+// City model
 type City struct {
-	Base
+	Model
 	Name      string
 	StateID   int `gorm:"index"`
 	Companies []Company

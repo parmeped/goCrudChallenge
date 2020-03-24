@@ -1,8 +1,8 @@
 package model
 
-// Company represents company model
+// Company model
 type Company struct {
-	Base
+	Model
 	Name         string
 	StreetName   string
 	StreetNumber int

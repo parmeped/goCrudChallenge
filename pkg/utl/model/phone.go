@@ -1,10 +1,10 @@
 package model
 
-// TODO: add desc
+// Phone model
 type Phone struct {
-	Base
-	Prefix      int
-	Number      int
-	PhoneTypeID int `gorm:"index"`
-	ContactID   int `gorm:"index"`
+	Model
+	Prefix      int  `json:"prefix" validate:"required"`
+	Number      int  `json:"number" validate:"required"`
+	PhoneTypeID int  `gorm:"index" json:"type_id"`
+	ContactID   uint `gorm:"index`
 }

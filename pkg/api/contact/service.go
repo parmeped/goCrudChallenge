@@ -11,41 +11,40 @@ import (
 	"github.com/labstack/echo"
 )
 
-// Service represents user application interface
+// Service represents contact application interface
 type Service interface {
 	Create(echo.Context, model.Contact) (*model.Contact, error)
 	List(echo.Context, *model.Pagination, *req.ByLocation) ([]model.Contact, error)
-	View(echo.Context, int) (*res.ContactResponse, error)
-	Delete(echo.Context, int) error
+	View(echo.Context, uint) (*res.ContactResponse, error)
+	Delete(echo.Context, uint) error
 	Update(echo.Context, *Update) (*res.ContactResponse, error)
-	ByMail(echo.Context, string) (*res.ContactResponse, error)
+	ByMail(echo.Context, string, *model.Pagination) (*[]model.Contact, error)
 	ByPhone(echo.Context, *req.ByPhone) (*res.ContactResponse, error)
 }
 
-// New creates new user application service
-// TODO: add interface
+// New creates new contact application service
 func New(db *gorm.DB, cdb CDB) *Contact {
 	return &Contact{db: db, cdb: cdb}
 }
 
-// Initialize initalizes User application service with defaults
-// TODO: here the implementation gets passed to the service
+// Initialize initalizes contact application service with defaults
 func Initialize(db *gorm.DB) *Contact {
 	return New(db, pgsql.NewContact())
 }
 
-// User represents user application service
+// Contact represents the contacts application service
 type Contact struct {
 	db  *gorm.DB
 	cdb CDB
 }
 
+// CDB represents the contact DB interface
 type CDB interface {
-	Create(gorm.DB, model.Contact) (*model.Contact, error)
-	View(gorm.DB, int) (*res.ContactResponse, error)
-	List(gorm.DB, *query.ListQuery, *model.Pagination) ([]model.Contact, error)
+	Create(*gorm.DB, model.Contact) (*model.Contact, error)
+	View(*gorm.DB, uint) (*res.ContactResponse, error)
+	List(*gorm.DB, *query.ListQuery, *model.Pagination) ([]model.Contact, error)
 	Delete(gorm.DB, *model.Contact) error
-	Update(gorm.DB, *model.Contact) error
-	ByMail(gorm.DB, string) (*res.ContactResponse, error)
-	ByPhone(gorm.DB, *req.ByPhone) (*res.ContactResponse, error)
+	Update(*gorm.DB, *model.Contact) error
+	ByMail(*gorm.DB, string, *model.Pagination) (*[]model.Contact, error)
+	ByPhone(*gorm.DB, *model.Phone) (uint, error)
 }

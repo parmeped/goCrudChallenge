@@ -1,0 +1,1 @@
+config.go has the Load function aside with a couple of structs for storing the configuration read from the yaml file. 
