@@ -14,6 +14,7 @@ type customErrHandler struct {
 
 var validationErrors = map[string]string{
 	"required": " is required, but was not received",
+	"min":      "'s value or length is less than allowed",
 }
 
 func getVldErrorMsg(s string) string {

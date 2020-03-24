@@ -8,7 +8,6 @@ type Company struct {
 	StreetName   string `json:"street_name"`
 	StreetNumber int    `json:"street_number"`
 	CityID       int    `json:"city_id"`
-	StateID      int    `json:"state_id"`
 
 	Owner Contact `json:"owner"`
 }

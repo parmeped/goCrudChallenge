@@ -2,10 +2,12 @@ package transport
 
 import (
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/goCrudChallenge/pkg/api/contact"
 	"github.com/goCrudChallenge/pkg/utl/model"
+	req "github.com/goCrudChallenge/pkg/utl/model/requests"
 
 	"github.com/labstack/echo"
 )
@@ -18,164 +20,50 @@ type HTTP struct {
 // NewHTTP creates new user http service
 func NewHTTP(svc contact.Service, er *echo.Group) {
 	h := HTTP{svc}
-	ur := er.Group("/contacts")
-	// swagger:route POST /v1/users users userCreate
-	// Creates new user account.
-	// responses:
-	//  200: userResp
-	//  400: errMsg
-	//  401: err
-	//  403: errMsg
-	//  500: err
-	ur.POST("", h.create)
+	cg := er.Group("/contacts")
 
-	// swagger:operation GET /v1/users users listUsers
-	// ---
-	// summary: Returns list of users.
-	// description: Returns list of users. Depending on the user role requesting it, it may return all users for SuperAdmin/Admin users, all company/location users for Company/Location admins, and an error for non-admin users.
-	// parameters:
-	// - name: limit
-	//   in: query
-	//   description: number of results
-	//   type: int
-	//   required: false
-	// - name: page
-	//   in: query
-	//   description: page number
-	//   type: int
-	//   required: false
-	// responses:
-	//   "200":
-	//     "$ref": "#/responses/userListResp"
-	//   "400":
-	//     "$ref": "#/responses/errMsg"
-	//   "401":
-	//     "$ref": "#/responses/err"
-	//   "403":
-	//     "$ref": "#/responses/err"
-	//   "500":
-	//     "$ref": "#/responses/err"
-	//ur.GET("", h.list)
+	cg.POST("", h.create)
 
-	// swagger:operation GET /v1/users/{id} users getUser
-	// ---
-	// summary: Returns a single user.
-	// description: Returns a single user by its ID.
-	// parameters:
-	// - name: id
-	//   in: path
-	//   description: id of user
-	//   type: int
-	//   required: true
-	// responses:
-	//   "200":
-	//     "$ref": "#/responses/userResp"
-	//   "400":
-	//     "$ref": "#/responses/err"
-	//   "401":
-	//     "$ref": "#/responses/err"
-	//   "403":
-	//     "$ref": "#/responses/err"
-	//   "404":
-	//     "$ref": "#/responses/err"
-	//   "500":
-	//     "$ref": "#/responses/err"
-	//ur.GET("/:id", h.view)
+	cg.GET("/:id/:searchParam", h.list)
 
-	// swagger:operation PATCH /v1/users/{id} users userUpdate
-	// ---
-	// summary: Updates user's contact information
-	// description: Updates user's contact information -> first name, last name, mobile, phone, address.
-	// parameters:
-	// - name: id
-	//   in: path
-	//   description: id of user
-	//   type: int
-	//   required: true
-	// - name: request
-	//   in: body
-	//   description: Request body
-	//   required: true
-	//   schema:
-	//     "$ref": "#/definitions/userUpdate"
-	// responses:
-	//   "200":
-	//     "$ref": "#/responses/userResp"
-	//   "400":
-	//     "$ref": "#/responses/errMsg"
-	//   "401":
-	//     "$ref": "#/responses/err"
-	//   "403":
-	//     "$ref": "#/responses/err"
-	//   "500":
-	//     "$ref": "#/responses/err"
-	//ur.PATCH("/:id", h.update)
+	cg.GET("/:id/:searchParam", h.list)
 
-	// swagger:operation DELETE /v1/users/{id} users userDelete
-	// ---
-	// summary: Deletes a user
-	// description: Deletes a user with requested ID.
-	// parameters:
-	// - name: id
-	//   in: path
-	//   description: id of user
-	//   type: int
-	//   required: true
-	// responses:
-	//   "200":
-	//     "$ref": "#/responses/ok"
-	//   "400":
-	//     "$ref": "#/responses/err"
-	//   "401":
-	//     "$ref": "#/responses/err"
-	//   "403":
-	//     "$ref": "#/responses/err"
-	//   "500":
-	//     "$ref": "#/responses/err"
-	//ur.DELETE("/:id", h.delete)
-}
+	cg.GET("/:id", h.view)
 
-// // Custom errors
-// var (
-// 	ErrPasswordsNotMaching = echo.NewHTTPError(http.StatusBadRequest, "passwords do not match")
-// )
+	cg.PATCH("/:id", h.update)
 
-// User create request
-// swagger:model userCreate
-type createReq struct {
-	Name         string    `json:"first_name" validate:"required"`
-	Email        string    `json:"email" validate:"required,email"`
-	ProfileImage string    `json:"profile_image" validate:"required"`
-	BirthDate    time.Time `json:"birth_date" validate:"required"`
-
-	CompanyID    int    `json:"company_id" validate:"required"`
-	StreetName   string `json:"street_name" validate:"required"`
-	StreetNumber int    `json:"street_number" validate:"required"`
-	CityID       int    `json:"city_id" validate:"required"`
-	StateID      int    `json:"state_id" validate:"required"`
+	cg.DELETE("/:id", h.delete)
 }
 
 func (h *HTTP) create(c echo.Context) error {
-	r := new(createReq)
+	r := new(req.CreateReq)
 
 	if err := c.Bind(r); err != nil {
 
 		return err
 	}
 
-	// TODO: validate if address exists. should go on the address service create?
+	// TODO: check this time parsing
+	birthD, err := time.Parse(time.RFC3339, r.BirthDate)
+	if err != nil {
+		return model.ErrParsingDate
+	}
 
+	if err != nil {
+		return err
+	}
+
+	// TODO: phone missing, remove Active
 	cnt, err := h.svc.Create(c, model.Contact{
 		Name:         r.Name,
 		Active:       true,
 		CompanyID:    r.CompanyID,
 		ProfileImage: r.ProfileImage,
 		Email:        r.Email,
-		BirthDate:    r.BirthDate,
+		BirthDate:    birthD,
 		StreetName:   r.StreetName,
 		StreetNumber: r.StreetNumber,
 		CityID:       r.CityID,
-		StateID:      r.StateID,
 	})
 
 	if err != nil {
@@ -205,67 +93,69 @@ func (h *HTTP) create(c echo.Context) error {
 // 	return c.JSON(http.StatusOK, listResponse{result, p.Page})
 // }
 
-// func (h *HTTP) view(c echo.Context) error {
-// 	id, err := strconv.Atoi(c.Param("id"))
-// 	if err != nil {
-// 		return gorsk.ErrBadRequest
-// 	}
+func (h *HTTP) view(c echo.Context) error {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return model.ErrBadRequest
+	}
 
-// 	result, err := h.svc.View(c, id)
-// 	if err != nil {
-// 		return err
-// 	}
+	result, err := h.svc.View(c, id)
+	if err != nil {
+		return err
+	}
 
-// 	return c.JSON(http.StatusOK, result)
-// }
+	return c.JSON(http.StatusOK, result)
+}
 
-// // User update request
-// // swagger:model userUpdate
-// type updateReq struct {
-// 	ID        int    `json:"-"`
-// 	FirstName string `json:"first_name,omitempty" validate:"omitempty,min=2"`
-// 	LastName  string `json:"last_name,omitempty" validate:"omitempty,min=2"`
-// 	Mobile    string `json:"mobile,omitempty"`
-// 	Phone     string `json:"phone,omitempty"`
-// 	Address   string `json:"address,omitempty"`
-// }
+func (h *HTTP) update(c echo.Context) error {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return model.ErrParsingId
+	}
 
-// func (h *HTTP) update(c echo.Context) error {
-// 	id, err := strconv.Atoi(c.Param("id"))
-// 	if err != nil {
-// 		return gorsk.ErrBadRequest
-// 	}
+	req := new(req.UpdateReq)
+	if err := c.Bind(req); err != nil {
+		return err
+	}
 
-// 	req := new(updateReq)
-// 	if err := c.Bind(req); err != nil {
-// 		return err
-// 	}
+	streetNum, err := strconv.Atoi(req.StreetNumber)
+	if err != nil {
+		return model.ErrReqWithStreetNumber
+	}
 
-// 	usr, err := h.svc.Update(c, &user.Update{
-// 		ID:        id,
-// 		FirstName: req.FirstName,
-// 		LastName:  req.LastName,
-// 		Mobile:    req.Mobile,
-// 		Phone:     req.Phone,
-// 		Address:   req.Address,
-// 	})
+	birthD, err := time.Parse(time.RFC3339, req.BirthDate)
+	if err != nil {
+		return model.ErrParsingDate
+	}
 
-// 	if err != nil {
-// 		return err
-// 	}
+	contact, err := h.svc.Update(c, &contact.Update{
+		ID:           id,
+		Name:         req.Name,
+		CompanyID:    req.CompanyID,
+		ProfileImage: req.ProfileImage,
+		Email:        req.Email,
+		BirthDate:    birthD,
+		StreetName:   req.StreetName,
+		StreetNumber: streetNum,
+		CityID:       req.CityID,
+	})
 
-// 	return c.JSON(http.StatusOK, usr)
-// }
+	if err != nil {
+		return err
+	}
 
-// func (h *HTTP) delete(c echo.Context) error {
-// 	id, err := strconv.Atoi(c.Param("id"))
-// 	if err != nil {
-// 		return gorsk.ErrBadRequest
-// 	}
+	return c.JSON(http.StatusOK, contact)
+}
 
-// 	if err := h.svc.Delete(c, id); err != nil {
-// 		return err
-// 	}
+func (h *HTTP) delete(c echo.Context) error {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return model.ErrBadRequest
+	}
 
-// 	return c.NoContent(http.StatusOK)
-// }
+	if err := h.svc.Delete(c, id); err != nil {
+		return err
+	}
+
+	return c.NoContent(http.StatusOK)
+}

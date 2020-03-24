@@ -1,6 +1,6 @@
 database:  
   timeout_seconds: 5
-  psn: postgres://biadpozi:3_Czbl7jSjkUEWk--VP8QXMke-mFnczq@horton.elephantsql.com:5432/biadpozi
+  psn: postgres://postgres:mpc3000@localhost:5432/CrudTest?sslmode=disable
 
 server:
   port: :8080

@@ -26,18 +26,22 @@ Address (Should have state or city. [this is an assumption])
 - NO AUTH (says nothing about this)
 - Use gorsk implementation for setting up a connection with a PostgreSql db. (Maybe add to the documentation why an SQL db was selected. IS an SQL db needed?)
   Check SQL vs NoSQL first.   
-- Create the MVP first : Expose an endpoint, handle it through services, save it on db.
-  Retrieve that contactInfo
-  Search that contactInfo
-  Delete that contactInfo
-  Do the searchBy.. stuff
+- Create the MVP first : Expose an endpoint, handle it through services.
+  Create contactInfo. [Ok, missing validations]
+  Retrieve that contactInfo by id [Ok, missing validations and correct return]
+  Delete that contactInfo  [Ok, validating if exists before deleting]
+  Update that contactInfo [Ok, seems to be working just fine]
+  Search that contactInfo by email or phone number 
+   Make two separate search endpoints.
 - Polish design
   Add validation
 - Documentation 
   just a .me explaining on each folder
-  Swagger
+  Swagger [NO TIME]
 - Unit tests  
 - Docker
+
+- Check code.
 
 # DB
 - Contacts (contactID, name, companyID, profileImage, email, birthDate, addressID)

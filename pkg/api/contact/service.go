@@ -5,6 +5,7 @@ import (
 	"github.com/go-pg/pg/orm"
 	"github.com/goCrudChallenge/pkg/api/contact/platform/pgsql"
 	"github.com/goCrudChallenge/pkg/utl/model"
+	res "github.com/goCrudChallenge/pkg/utl/model/responses"
 	"github.com/labstack/echo"
 )
 
@@ -12,9 +13,9 @@ import (
 type Service interface {
 	Create(echo.Context, model.Contact) (*model.Contact, error)
 	// List(echo.Context, *model.Pagination) ([]model.Contact, error)
-	// View(echo.Context, int) (*model.Contact, error)
-	// Delete(echo.Context, int) error
-	// Update(echo.Context, *Update) (*model.Contact, error)
+	View(echo.Context, int) (*res.ContactResponse, error)
+	Delete(echo.Context, int) error
+	Update(echo.Context, *Update) (*res.ContactResponse, error)
 }
 
 // New creates new user application service
@@ -37,16 +38,8 @@ type Contact struct {
 
 type CDB interface {
 	Create(orm.DB, model.Contact) (*model.Contact, error)
-	//View(orm.DB, int) (*model.Contact, error)
+	View(orm.DB, int) (*res.ContactResponse, error)
 	//List(orm.DB, *gorsk.ListQuery, *gorsk.Pagination) ([]model.Contact, error)
-	//Update(orm.DB, *model.Contact) error
-	//Delete(orm.DB, *model.Contact) error
+	Delete(orm.DB, *model.Contact) error
+	Update(orm.DB, *model.Contact) error
 }
-
-// // RBAC represents role-based-access-control interface
-// type RBAC interface {
-// 	User(echo.Context) *gorsk.AuthUser
-// 	EnforceUser(echo.Context, int) error
-// 	AccountCreate(echo.Context, gorsk.AccessRole, int, int) error
-// 	IsLowerRole(echo.Context, gorsk.AccessRole) error
-// }

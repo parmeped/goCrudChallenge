@@ -20,6 +20,7 @@ func (cb *CustomBinder) Bind(i interface{}, c echo.Context) error {
 	if err := cb.b.Bind(i, c); err != nil && err != echo.ErrUnsupportedMediaType {
 		return err
 	}
+
 	return c.Validate(i)
 }
 
