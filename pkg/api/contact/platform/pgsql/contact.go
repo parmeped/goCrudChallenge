@@ -4,133 +4,184 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/go-pg/pg"
-	"github.com/go-pg/pg/orm"
 	"github.com/goCrudChallenge/pkg/utl/model"
-	req "github.com/goCrudChallenge/pkg/utl/model/requests"
 	res "github.com/goCrudChallenge/pkg/utl/model/responses"
 	"github.com/goCrudChallenge/pkg/utl/query"
+	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo"
 )
 
-// TODO: add desc
+// NewContact returns a new contact for later calls
 func NewContact() *Contact {
 	return &Contact{}
 }
 
-// TODO: add desc
-
+// Contact struct
 type Contact struct{}
 
 // Custom errors
 var (
-	ErrAlreadyExists = echo.NewHTTPError(http.StatusInternalServerError, "Username or email already exists.")
+	ErrAlreadyExists      = echo.NewHTTPError(http.StatusBadRequest, "Username or email already exists.")
+	ErrCityDoesntExist    = echo.NewHTTPError(http.StatusBadRequest, "City  doesn't exist.")
+	ErrCompanyDoesntExist = echo.NewHTTPError(http.StatusBadRequest, "Company doesn't exist.")
+	ErrNotExists          = echo.NewHTTPError(http.StatusInternalServerError, "ID wasn't found.")
+	ErrDeleteFailed       = echo.NewHTTPError(http.StatusInternalServerError, "Delete failed.")
+	ErrNotFound           = echo.NewHTTPError(http.StatusInternalServerError, "The contact wasn't found.")
 )
 
-// Create creates a new user on database
-// TODO: validate here with queries if state, company or city exists. There could also be a comment about addresses.
-func (c *Contact) Create(db orm.DB, cont model.Contact) (*model.Contact, error) {
-	var contact = new(model.Contact)
-	err := db.Model(contact).Where("lower(name) = ? or lower(email) = ? and deleted_at is null",
-		strings.ToLower(cont.Name), strings.ToLower(cont.Email)).Select()
-	if (err == nil) || (err != nil && err != pg.ErrNoRows) {
+// Create creates a new contact on database
+func (co *Contact) Create(db *gorm.DB, cont model.Contact) (*model.Contact, error) {
+	contact := model.Contact{}
+	city := model.City{}
+	company := model.Company{}
+
+	db.Select("ID").Where("lower(name) = ? or lower(email) = ? and deleted_at is null", strings.ToLower(cont.Name), strings.ToLower(cont.Email)).First(&contact)
+	db.Select("ID").Where("id = ?", cont.CityID).First(&city)
+	db.Select("ID").Where("id = ?", cont.CompanyID).First(&company)
+
+	if contact.ID != 0 {
 		return nil, ErrAlreadyExists
 	}
 
-	if err := db.Insert(&cont); err != nil {
-		return nil, err
+	if city.ID == 0 {
+		return nil, ErrCityDoesntExist
 	}
 
-	for _, v := range cont.Phones {
-		phone := model.Phone{Prefix: v.Prefix, Number: v.Number, TypeID: v.TypeID, Owner: cont.ID}
-		if err := db.Insert(&phone); err != nil {
-			return nil, err
-		}
+	if company.ID == 0 {
+		return nil, ErrCompanyDoesntExist
 	}
+
+	db.Create(&cont)
+
 	return &cont, nil
 }
 
-// TODO: this is returning pqsql error, should return something else.
-// View returns single user by ID
-func (c *Contact) View(db orm.DB, id int) (*res.ContactResponse, error) {
-	var contact = new(res.ContactResponse)
-	//phone := model.Phone{}
-	//q := db.Model(&contact).Column("contact.*").Join("JOIN phones p on p.owner = contact.id")
-	sql := db.Model(&contact).Column("contact.*, companies.name AS [company_name], cities.name AS [city_name], states.name AS [state_name]")
-			.Join("LEFT JOIN companies ON company.id = contact.company_id")
-			.Join("LEFT JOIN cities ON cities.id = contact.city_id")
-			.Join("LEFT JOIN states ON states.id = cities.state_id")
-			.Where("contact.id = ? and contact.deleted_at is null")
-	// sql := `SELECT contact"."id", "contact"."name", "company"."id" AS "company_id", "company"."name" AS "company_name",
-	//  "contact"."profile_image", "contact"."email", "contact"."birth_date", "contact"."street_name", "contact"."street_number",
-	//  "cities"."id" AS "city_id", "cities"."name" AS "city_name", "states"."name" AS "state_name",
-	//  FROM "contacts" AS "contact" 
-	//  LEFT JOIN "companies" AS "company" ON "company"."id" = "contact"."company_id"
-	//  LEFT JOIN "cities" ON "cities"."id" = "contact"."city_id"
-	//  LEFT JOIN "states" ON "states"."id" = "cities"."state_id"
-	//  LEFT JOIN "phones" ON "phones"."owner" = "contact"."id"
-	//  WHERE ("contact"."id" = ? and "contact"."deleted_at" is null)`
-	_, err := db.QueryOne(contact, sql, id)
-	if err != nil {
+// View returns a contact by ID
+func (co *Contact) View(db *gorm.DB, id uint) (*res.ContactResponse, error) {
+	var r = new(res.ContactResponse)
+	contact := model.Contact{}
+	city := model.City{}
+	company := model.Company{}
+	phones := []model.Phone{}
+	state := model.State{}
+
+	// TODO: [IMPROVEMENT] Make a single query to improve performance and reading
+	db.Where("id = ?", id).Find(&contact)
+	db.Where("id = ?", contact.CityID).Find(&city)
+	db.Where("id = ?", contact.CompanyID).Find(&company)
+	db.Where("id = ?", city.StateID).Find(&state)
+	db.Where("contact_id = ?", id).Find(&phones)
+
+	if contact.ID == 0 {
+		return nil, ErrNotExists
+	}
+
+	r.ID = contact.ID
+	r.CityID = contact.CityID
+	r.CityName = city.Name
+	r.CompanyID = contact.CompanyID
+	r.CompanyName = company.Name
+	r.Email = contact.Email
+	r.ProfileImage = contact.ProfileImage
+	r.StreetName = contact.StreetName
+	r.StreetNumber = contact.StreetNumber
+	r.Name = contact.Name
+	r.StateName = state.Name
+	r.Phones = phones
+
+	return r, nil
+}
+
+// ByMail searches contacts by mail
+func (co *Contact) ByMail(db *gorm.DB, mail string, p *model.Pagination) (*[]model.Contact, error) {
+	contacts := &[]model.Contact{}
+	phones := []model.Phone{}
+	if err := db.Where("UPPER(email) LIKE ?", strings.ToUpper("%"+mail+"%")).Limit(p.Limit).Offset(p.Offset).Find(&contacts).Error; err != nil {
 		return nil, err
 	}
 
-	return contact, nil
-}
-
-// TODO: this is returning pqsql error, should return something else. Should make it return a list of the mails
-// View returns single user by ID
-func (c *Contact) ByMail(db orm.DB, mail string) (*res.ContactResponse, error) {
-	var contact = new(res.ContactResponse)
-	sql := `SELECT "contact"."id", "contact"."name", "contact"."active", "company"."id" AS "company_id", "company"."name" AS "company_name",
-	 "contact"."profile_image", "contact"."email", "contact"."birth_date", "contact"."street_name", "contact"."street_number", 
-	 "cities"."id" AS "city_id", "cities"."name" AS "city_name", "states"."name" AS "state_name"
-	 FROM "contacts" AS "contact" LEFT JOIN "companies" AS "company" ON "company"."id" = "contact"."company_id"
-	 LEFT JOIN "cities" ON "cities"."id" = "contact"."city_id" 
-	 LEFT JOIN "states" ON "states"."id" = "cities"."state_id" 
-	 WHERE (UPPER("contact"."email") LIKE ? and "contact"."deleted_at" is null)`
-	_, err := db.QueryOne(contact, sql, strings.ToUpper("%"+mail+"%"))
-	if err != nil {
-		return nil, err
+	if len(*contacts) < 0 {
+		return nil, ErrNotFound
 	}
 
-	return contact, nil
-}
+	for k, v := range *contacts {
 
-// TODO: this is returning pqsql error, should return something else. Should make it return a list of the mails
-// View returns single user by ID
-func (c *Contact) ByPhone(db orm.DB, phone *req.ByPhone) (*res.ContactResponse, error) {
-	var contact = new(res.ContactResponse)
-	sql := `MAKE QUERY`
-	_, err := db.QueryOne(contact, sql, "req.ByPhone")
-	if err != nil {
-		return nil, err
+		db.Where("contact_id = ?", v.ID).Find(&phones)
+		(*contacts)[k].Phones = phones
 	}
 
-	return contact, nil
-}
-
-// Update updates user's contact info
-func (c *Contact) Update(db orm.DB, contact *model.Contact) error {
-	err := db.Update(contact)
-	return err
-}
-
-// List returns list of all users retrievable for the current user, depending on role
-func (co *Contact) List(db orm.DB, qp *query.ListQuery, p *model.Pagination) ([]model.Contact, error) {
-	var contacts []model.Contact
-	q := db.Model(&contacts).Column("contact.*").Limit(p.Limit).Offset(p.Offset).Where("deleted_at is null").Order("contact.id desc")
-	if qp != nil {
-		q.Where(qp.Query, qp.ID)
-	}
-	if err := q.Select(); err != nil {
-		return nil, err
-	}
 	return contacts, nil
 }
 
-// TODO: this should delete the contact's phone too.
-// Delete sets deleted_at for a user
-func (c *Contact) Delete(db orm.DB, contact *model.Contact) error {
-	return db.Delete(contact)
+// ByPhone searches a contact by phone
+func (co *Contact) ByPhone(db *gorm.DB, phone *model.Phone) (uint, error) {
+
+	if err := db.Where("prefix = ? AND number = ?", phone.Prefix, phone.Number).First(&phone).Error; err != nil {
+		return 0, err
+	}
+
+	return phone.ContactID, nil
+}
+
+// Update the contact's info
+func (co *Contact) Update(db *gorm.DB, r *model.Contact) error {
+	city := model.City{}
+	company := model.Company{}
+
+	db.Select("ID").Where("id = ?", r.CityID).First(&city)
+	db.Select("ID").Where("id = ?", r.CompanyID).First(&company)
+
+	if city.ID == 0 {
+		return ErrCityDoesntExist
+	}
+
+	if company.ID == 0 {
+		return ErrCompanyDoesntExist
+	}
+
+	u := model.Contact{
+		Model:        model.Model{ID: r.ID},
+		Name:         r.Name,
+		CompanyID:    r.CompanyID,
+		ProfileImage: r.ProfileImage,
+		Email:        r.Email,
+		BirthDate:    r.BirthDate,
+		StreetName:   r.StreetName,
+		StreetNumber: r.StreetNumber,
+		CityID:       r.CityID,
+		Phones:       r.Phones,
+	}
+
+	// should retrieve from the db first, if it doesn't found, toss an error
+	if err := db.Where("id = ?", r.ID).First(&r).Error; err != nil {
+		return ErrNotExists
+	}
+
+	if err := db.Save(&u).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// List returns list of all contacts depending on location query
+func (co *Contact) List(db *gorm.DB, qp *query.ListQuery, p *model.Pagination) ([]model.Contact, error) {
+
+	contacts := []model.Contact{}
+	if err := db.Where("deleted_at is null").Where(qp.Query, qp.ID).Limit(p.Limit).Offset(p.Offset).Find(&contacts).Order("contact.id desc").Error; err != nil {
+		return nil, err
+	}
+
+	return contacts, nil
+}
+
+// Delete sets deleted_at for a contact (soft delete)
+func (co *Contact) Delete(db gorm.DB, contact *model.Contact) error {
+	phone := []model.Phone{}
+	if err := db.Delete(&contact).Error; err != nil {
+		return ErrDeleteFailed
+	}
+	db.Where("contact_id = ?", contact.ID).Delete(&phone)
+
+	return nil
 }

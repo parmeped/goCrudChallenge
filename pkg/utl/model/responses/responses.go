@@ -6,13 +6,13 @@ import (
 	"github.com/goCrudChallenge/pkg/utl/model"
 )
 
+// ContactResponse is returned when viewing a contact's data
 type ContactResponse struct {
-	ID           int           `json:"id"`
+	ID           uint          `json:"id"`
 	Name         string        `json:"name"`
-	Active       bool          `json:"active"`
 	CompanyID    int           `json:"company_id"`
 	CompanyName  string        `json:"company_name"`
-	ProfileImage string        `json:"profile_image"` // TODO: this should be a BLOB, or something similar. See how to save this data.
+	ProfileImage string        `json:"profile_image"`
 	Email        string        `json:"email"`
 	BirthDate    time.Time     `json:"birth_date"`
 	StreetName   string        `json:"street_name"`

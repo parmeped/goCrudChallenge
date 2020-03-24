@@ -1,7 +1,8 @@
 package model
 
-// TODO: Add desc
+// PhoneType model
 type PhoneType struct {
-	Base
-	Name string `json:"name"`
+	Model
+	Name   string
+	Phones []Phone
 }

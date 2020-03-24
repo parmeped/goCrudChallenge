@@ -1,12 +1,8 @@
-database:  
-  timeout_seconds: 5
-  psn: postgres://postgres:mpc3000@localhost:5432/CrudTest?sslmode=disable
+database:    
+  psn: host=localhost port=5432 user=postgres dbname=DBName password=DBPassword
 
 server:
   port: :8080
   debug: true
   read_timeout_seconds: 10
   write_timeout_seconds: 5
-
-application:
-  swagger_ui_path: assets/swaggerui

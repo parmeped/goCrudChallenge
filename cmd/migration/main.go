@@ -1,56 +1,134 @@
 package main
 
 import (
-	"log"
-	"strings"
+	"math/rand"
+	"strconv"
+	"time"
 
 	"github.com/goCrudChallenge/pkg/utl/model"
 
-	"github.com/go-pg/pg"
-	"github.com/go-pg/pg/orm"
+	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
 func main() {
-	// This is the insert that's gonna be made
-	dbInsert :=
-		`INSERT INTO public.cities VALUES (1, now(), now(), NULL, 'TestCity', 1);
-	INSERT INTO public.states VALUES (1, now(), now(), NULL, 'TestState');
-	INSERT INTO public.companies VALUES (1, now(), now(), NULL, 'TestCompany', 'TestStreet', 1000, 1);
-	INSERT INTO public.contacts VALUES (1, now(), now(), NULL, 'TestContact', 1, NULL, 'test@email.com', '2020-01-01', 'TestStreet', 1000, 1);
-	INSERT INTO public.phone_types VALUES (1, now(), now(), NULL, 'Work');
-	INSERT INTO public.phone_types VALUES (2, now(), now(), NULL, 'Personal');
-	`
 
-	var psn = `postgres://postgres:mpc3000@localhost:5432/CrudTest?sslmode=disable`
-	queries := strings.Split(dbInsert, ";")
+	db, err := gorm.Open("postgres", "host=localhost port=5432 user=postgres dbname=DBName password=DBPassword") // sslmode=disable
+	if err != nil {
+		panic("failed to connect database")
+	}
+	defer db.Close()
 
-	u, err := pg.ParseURL(psn)
-	checkErr(err)
-	db := pg.Connect(u)
-	_, err = db.Exec("SELECT 1")
-	checkErr(err)
+	//------- Insert seed values for cities, states, phone types, companies and contacts -------//
 
 	// This creates the schema.
-	createSchema(db, &model.City{}, &model.Company{}, &model.Contact{}, &model.Phone{}, &model.PhoneType{}, &model.State{})
+	db.AutoMigrate(&model.City{}, &model.Company{}, &model.Contact{}, &model.Phone{}, &model.PhoneType{}, &model.State{})
 
-	for _, v := range queries[0 : len(queries)-1] {
-		_, err := db.Exec(v)
-		checkErr(err)
+	streetName := "Street Name"
+	// States
+	i := 0
+	for i < 5 {
+		i++
+		state := model.State{Name: "State " + strconv.Itoa(i)}
+		db.Create(&state)
+	}
+
+	// Cities
+	i = 0
+	j := 1
+	for i < 10 {
+		i++
+		city := model.City{Name: "City " + strconv.Itoa(i), StateID: j}
+		// To give two cities for each state
+		if i%2 == 0 {
+			j++
+		}
+		db.Create(&city)
+	}
+
+	// Companies
+	i = 0
+	j = 1
+
+	for i < 10 {
+		i++
+		company := model.Company{Name: "Company " + strconv.Itoa(i), CityID: i, StreetName: streetName, StreetNumber: rand.Intn(5000)}
+		db.Create(&company)
+	}
+
+	// Phone types
+	type1 := model.PhoneType{Name: "work"}
+	type2 := model.PhoneType{Name: "personal"}
+	db.Create(&type1)
+	db.Create(&type2)
+
+	// Contacts
+	i = 0
+	j = 1
+	for i < 20 {
+		i++
+		contact := model.Contact{
+			Name:         "Contact " + strconv.Itoa(i),
+			CityID:       j,
+			CompanyID:    j,
+			StreetName:   streetName,
+			StreetNumber: rand.Intn(5000),
+			BirthDate:    randomBirthDate(),
+			Email:        "contactEmail" + strconv.Itoa(i) + "@mail.com",
+			ProfileImage: "ImageUrl",
+		}
+		// To give two contacts for each city and company
+		if i%2 == 0 {
+			j++
+		}
+		db.Create(&contact)
+	}
+
+	// Phones
+	i = 0
+	j = 1
+	for i < 20 {
+		phone := model.Phone{Prefix: 549, Number: randomPhoneNumber(), PhoneTypeID: 1, ContactID: uint(j)}
+		i++
+		j++
+
+		db.Create(&phone)
+	}
+	i = 0
+	j = 1
+	for i < 20 {
+		phone := model.Phone{Prefix: 549, Number: randomPhoneNumber(), PhoneTypeID: 2, ContactID: uint(j)}
+		i++
+		j++
+
+		db.Create(&phone)
 	}
 }
 
-// Error checking
-func checkErr(err error) {
-	if err != nil {
-		log.Fatal(err)
-	}
+func randomPhoneNumber() int {
+	min := 11111111
+	max := 99999999
+	return rand.Intn(max-min+1) + min
 }
 
-// This func creates all tables
-func createSchema(db *pg.DB, models ...interface{}) {
-	for _, model := range models {
-		checkErr(db.CreateTable(model, &orm.CreateTableOptions{
-			FKConstraints: true,
-		}))
+func randomBirthDate() time.Time {
+	min := 1960
+	max := time.Now().Year()
+	year := strconv.Itoa(rand.Intn(max-min+1) + min)
+	minDay := 1
+	maxDay := 28
+	day := strconv.Itoa(rand.Intn(maxDay-minDay+1) + minDay)
+	minMonth := 1
+	maxMonth := 12
+	month := strconv.Itoa(rand.Intn(maxMonth-minMonth+1) + minMonth)
+
+	if len(day) < 2 {
+		day = "0" + day
 	}
+	if len(month) < 2 {
+		month = "0" + month
+	}
+	birthD, _ := time.Parse(time.RFC3339, year+"-"+month+"-"+day+"T01:00:00Z")
+
+	return birthD
 }

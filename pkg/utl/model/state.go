@@ -1,7 +1,8 @@
 package model
 
-// TODO: add desc
+// State model
 type State struct {
-	Base
-	Name string `json:"name"`
+	Model
+	Name   string `json:"name"`
+	Cities []City
 }

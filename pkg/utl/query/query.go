@@ -10,7 +10,7 @@ type ListQuery struct {
 	ID    int
 }
 
-// List prepares data for list queries
+// List prepares the list queries
 func List(param *req.ByLocation) (*ListQuery, error) {
 	switch true {
 	case param.Location == "company":

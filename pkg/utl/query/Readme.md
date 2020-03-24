@@ -1,0 +1,1 @@
+query contains a switch used for deciding according to the parameters provided, what to search

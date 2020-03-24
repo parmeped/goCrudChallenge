@@ -1,31 +1,19 @@
 package postgres
 
 import (
-	"time"
-
-	"github.com/go-pg/pg"
-	// DB adapter
-	_ "github.com/lib/pq"
+	"github.com/jinzhu/gorm"
+	// DB dialect
+	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
 type dbLogger struct{}
 
 // New creates new database connection to a postgres database
-func New(psn string, timeout int) (*pg.DB, error) {
-	u, err := pg.ParseURL(psn)
+func New(psn string) (*gorm.DB, error) {
+
+	db, err := gorm.Open("postgres", psn)
 	if err != nil {
-		return nil, err
-	}
-
-	db := pg.Connect(u)
-
-	_, err = db.Exec("SELECT 1")
-	if err != nil {
-		return nil, err
-	}
-
-	if timeout > 0 {
-		db.WithTimeout(time.Second * time.Duration(timeout))
+		panic("failed to connect database")
 	}
 
 	return db, nil

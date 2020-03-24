@@ -12,15 +12,13 @@ import (
 func Start(cfg *config.Configuration) error {
 
 	// Tries to connect to the DB
-	db, err := postgres.New(cfg.DB.PSN, cfg.DB.Timeout)
+	db, err := postgres.New(cfg.DB.PSN)
 	if err != nil {
 		return err
 	}
 
 	// Initializes server
 	e := server.New()
-	// TODO: Swagger
-	//e.Static("/swaggerui", cfg.App.SwaggerUIPath)
 
 	v1 := e.Group("/v1")
 
