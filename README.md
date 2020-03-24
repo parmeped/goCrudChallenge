@@ -6,6 +6,8 @@ gorm
 postgresql
 
 # Quick Start
+To get dependencies : go get ./...
+
 To create the db, go to goCrudChallenge/cmd/migration, then execute -- > go run main.go
 To start the api, go to goCrudChallenge/cmd/api, then execute -- > go run main.go
 
