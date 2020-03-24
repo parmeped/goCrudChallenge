@@ -22,4 +22,6 @@ var (
 	ErrParsingId = errors.New("Error parsing the id")
 
 	ErrParsingDate = errors.New("Error parsing the date")
+
+	ErrWrongSearchParameters = errors.New("Wrong parameters. Accepted parameters are company or city.")
 )

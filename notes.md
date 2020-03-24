@@ -31,8 +31,9 @@ Address (Should have state or city. [this is an assumption])
   Retrieve that contactInfo by id [Ok, missing validations and correct return]
   Delete that contactInfo  [Ok, validating if exists before deleting]
   Update that contactInfo [Ok, seems to be working just fine]
-  Search that contactInfo by email or phone number 
+  Search that contactInfo by email or phone number [Tested by email, seems to be working fine]
    Make two separate search endpoints.
+   Search that contactInfo by company or city. [Ok, works great]
 - Polish design
   Add validation
 - Documentation 

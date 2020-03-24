@@ -4,7 +4,9 @@ import (
 	"time"
 
 	"github.com/goCrudChallenge/pkg/utl/model"
+	req "github.com/goCrudChallenge/pkg/utl/model/requests"
 	res "github.com/goCrudChallenge/pkg/utl/model/responses"
+	"github.com/goCrudChallenge/pkg/utl/query"
 	"github.com/labstack/echo"
 )
 
@@ -18,19 +20,28 @@ func (co *Contact) Create(c echo.Context, req model.Contact) (*model.Contact, er
 	return co.cdb.Create(co.db, req)
 }
 
-// // List returns list of users
-// func (u *User) List(c echo.Context, p *gorsk.Pagination) ([]gorsk.User, error) {
-// 	au := u.rbac.User(c)
-// 	q, err := query.List(au)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return u.udb.List(u.db, q, p)
-// }
+// List returns list of contacts
+func (co *Contact) List(c echo.Context, p *model.Pagination, byLocReq *req.ByLocation) ([]model.Contact, error) {
+	q, err := query.List(byLocReq)
+	if err != nil {
+		return nil, err
+	}
+	return co.cdb.List(co.db, q, p)
+}
 
 // TODO: add desc
 func (co *Contact) View(c echo.Context, id int) (*res.ContactResponse, error) {
 	return co.cdb.View(co.db, id)
+}
+
+// TODO: add desc
+func (co *Contact) ByMail(c echo.Context, mail string) (*res.ContactResponse, error) {
+	return co.cdb.ByMail(co.db, mail)
+}
+
+// TODO: add desc
+func (co *Contact) ByPhone(c echo.Context, phone *req.ByPhone) (*res.ContactResponse, error) {
+	return co.cdb.ByPhone(co.db, phone)
 }
 
 // Delete deletes a user

@@ -1,5 +1,7 @@
 package model
 
+import "strconv"
+
 // TODO: add desc
 type Phone struct {
 	Base
@@ -7,4 +9,8 @@ type Phone struct {
 	Number int     `json:"number"`
 	TypeID int     `json:"type_id"`
 	Owner  Contact `json:"contact_id"`
+}
+
+func (p *Phone) GetPhone() string {
+	return strconv.Itoa(p.Prefix) + "-" + strconv.Itoa(p.Number)
 }

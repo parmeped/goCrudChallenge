@@ -24,3 +24,13 @@ type UpdateReq struct {
 	StreetNumber string `json:"street_number,omitempty" validate:"omitempty,min=1"`
 	CityID       int    `json:"city_id,omitempty" validate:"omitempty"`
 }
+
+type ByPhone struct {
+	Prefix int `json:"prefix,omitempty" validate:"omitempty,min=2"`
+	Number int `json:"number,omitempty" validate:"omitempty,min=8"`
+}
+
+type ByLocation struct {
+	Location string `json:"location,omitempty" validate:"omitempty,min=4"`
+	ID       int    `json:"id,omitempty" validate:"omitempty,min=1"`
+}

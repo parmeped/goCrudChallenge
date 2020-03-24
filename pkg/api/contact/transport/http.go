@@ -24,9 +24,11 @@ func NewHTTP(svc contact.Service, er *echo.Group) {
 
 	cg.POST("", h.create)
 
-	cg.GET("/:id/:searchParam", h.list)
+	cg.GET("/listByMail/:mail", h.byMail)
 
-	cg.GET("/:id/:searchParam", h.list)
+	cg.GET("/listByPhone", h.byPhone)
+
+	cg.GET("/listByLocation/:searchParam/:id", h.list)
 
 	cg.GET("/:id", h.view)
 
@@ -34,6 +36,8 @@ func NewHTTP(svc contact.Service, er *echo.Group) {
 
 	cg.DELETE("/:id", h.delete)
 }
+
+// TODO: Updates are not logging updated time
 
 func (h *HTTP) create(c echo.Context) error {
 	r := new(req.CreateReq)
@@ -73,25 +77,35 @@ func (h *HTTP) create(c echo.Context) error {
 	return c.JSON(http.StatusOK, cnt)
 }
 
-// type listResponse struct {
-// 	Users []gorsk.User `json:"users"`
-// 	Page  int          `json:"page"`
-// }
+type listResponse struct {
+	Contacts []model.Contact `json:"contacts"`
+	Page     int             `json:"page"`
+}
 
-// func (h *HTTP) list(c echo.Context) error {
-// 	p := new(gorsk.PaginationReq)
-// 	if err := c.Bind(p); err != nil {
-// 		return err
-// 	}
+func (h *HTTP) list(c echo.Context) error {
+	p := new(model.PaginationReq)
+	if err := c.Bind(p); err != nil {
+		return err
+	}
 
-// 	result, err := h.svc.List(c, p.Transform())
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return model.ErrBadRequest
+	}
 
-// 	if err != nil {
-// 		return err
-// 	}
+	byLocationReq := &req.ByLocation{
+		c.Param("searchParam"),
+		id,
+	}
 
-// 	return c.JSON(http.StatusOK, listResponse{result, p.Page})
-// }
+	result, err := h.svc.List(c, p.Transform(), byLocationReq)
+
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, listResponse{result, p.Page})
+}
 
 func (h *HTTP) view(c echo.Context) error {
 	id, err := strconv.Atoi(c.Param("id"))
@@ -100,6 +114,31 @@ func (h *HTTP) view(c echo.Context) error {
 	}
 
 	result, err := h.svc.View(c, id)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, result)
+}
+
+func (h *HTTP) byMail(c echo.Context) error {
+	mail := c.Param("mail")
+
+	result, err := h.svc.ByMail(c, mail)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, result)
+}
+
+func (h *HTTP) byPhone(c echo.Context) error {
+	req := &req.ByPhone{}
+	if err := c.Bind(req); err != nil {
+		return err
+	}
+
+	result, err := h.svc.ByPhone(c, req)
 	if err != nil {
 		return err
 	}
