@@ -1,6 +1,6 @@
 database:  
   timeout_seconds: 5
-  psn: postgres://postgres:mpc3000@localhost:5432/CrudTest?sslmode=disable
+  psn: host=localhost port=5432 user=postgres dbname=CrudTest password=mpc3000 sslmode=disable
 
 server:
   port: :8080

@@ -1,13 +1,12 @@
 package contact
 
 import (
-	"github.com/go-pg/pg"
-	"github.com/go-pg/pg/orm"
 	"github.com/goCrudChallenge/pkg/api/contact/platform/pgsql"
 	"github.com/goCrudChallenge/pkg/utl/model"
 	req "github.com/goCrudChallenge/pkg/utl/model/requests"
 	res "github.com/goCrudChallenge/pkg/utl/model/responses"
 	"github.com/goCrudChallenge/pkg/utl/query"
+	"github.com/jinzhu/gorm"
 
 	"github.com/labstack/echo"
 )
@@ -25,28 +24,28 @@ type Service interface {
 
 // New creates new user application service
 // TODO: add interface
-func New(db *pg.DB, cdb CDB) *Contact {
+func New(db *gorm.DB, cdb CDB) *Contact {
 	return &Contact{db: db, cdb: cdb}
 }
 
 // Initialize initalizes User application service with defaults
 // TODO: here the implementation gets passed to the service
-func Initialize(db *pg.DB) *Contact {
+func Initialize(db *gorm.DB) *Contact {
 	return New(db, pgsql.NewContact())
 }
 
 // User represents user application service
 type Contact struct {
-	db  *pg.DB
+	db  *gorm.DB
 	cdb CDB
 }
 
 type CDB interface {
-	Create(orm.DB, model.Contact) (*model.Contact, error)
-	View(orm.DB, int) (*res.ContactResponse, error)
-	List(orm.DB, *query.ListQuery, *model.Pagination) ([]model.Contact, error)
-	Delete(orm.DB, *model.Contact) error
-	Update(orm.DB, *model.Contact) error
-	ByMail(orm.DB, string) (*res.ContactResponse, error)
-	ByPhone(orm.DB, *req.ByPhone) (*res.ContactResponse, error)
+	Create(gorm.DB, model.Contact) (*model.Contact, error)
+	View(gorm.DB, int) (*res.ContactResponse, error)
+	List(gorm.DB, *query.ListQuery, *model.Pagination) ([]model.Contact, error)
+	Delete(gorm.DB, *model.Contact) error
+	Update(gorm.DB, *model.Contact) error
+	ByMail(gorm.DB, string) (*res.ContactResponse, error)
+	ByPhone(gorm.DB, *req.ByPhone) (*res.ContactResponse, error)
 }
