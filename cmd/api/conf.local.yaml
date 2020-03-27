@@ -1,5 +1,5 @@
 database:    
-  psn: host=localhost port=5432 user=postgres dbname=DBName password=DBPassword
+  psn: host=localhost port=5432 user=postgres dbname=CrudTest password=mpc3000 sslmode=disable
 
 server:
   port: :8080
