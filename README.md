@@ -106,7 +106,7 @@ JSON:
 Returns a 200 ok with the paginated data when found.
 
 # By Phone
-GET localhost:8080/v1/contacts/listByPhone
+GET localhost:8080/v1/contacts/byPhone
 
 JSON: 
 {
